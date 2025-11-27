@@ -1,9 +1,11 @@
 import random
 import os
 picks = {
-    "rock": "scissors",
-    "paper": "rock",
-    "scissors": "paper",
+    "rock": ["scissors", "lizard"],
+    "paper": ["rock", "spock"],
+    "scissors": ["paper", "lizard"],
+    "lizard": ["spock", "paper"],
+    "spock": ["scissors", "rock"],
 }
 
 class Game:
@@ -45,14 +47,17 @@ def askExtended():
         return False
 
 def checkWinner(choice, enemyChoice, game):
-    value = list(picks.keys())[choice-1]
+    
+    #converts int input to key pick value if not string
+    if isinstance(choice, int):
+        value = list(picks.keys())[choice-1]
     print("You picked " + value)
     print("The enemy picked " + enemyChoice)
     
     if value == enemyChoice:
         
         print("Draw!\n\n\n")
-    elif enemyChoice == picks[value]:
+    elif enemyChoice in picks[value]:
         
         print("Win\n\n\n")
         game.pointsP1 += 1
@@ -64,13 +69,13 @@ def checkWinner(choice, enemyChoice, game):
     print("Score: " + str(game.pointsP1) + " : " + str(game.pointsP2) + "\n")
 
 
-def playRound(game):
+def playNormal(game):
 
     choice = input("Whats your move?\nRock (1)\nPaper (2)\nScissors (3)\n")
 
     try:
         if (int(choice) > 0 and int(choice) < 4):
-            enemyChoice = random.choice(list(picks.keys()))
+            enemyChoice = list(picks.keys())[random.randint(0,2)]
             checkWinner(int(choice), enemyChoice, game)
         else:
             print("Invalid input")
@@ -79,7 +84,26 @@ def playRound(game):
         if(choice.lower() == "rock" or choice.lower() == "paper" or choice.lower() == "scissors"):
             checkWinner(choice, enemyChoice, game)
         else:
-            playRound(game)
+            print("Invalid input\n\n")
+            playNormal(game)
+            
+def playExtended(game):
+
+    choice = input("Whats your move?\nRock (1)\nPaper (2)\nScissors (3)\nLizard (4)\nSpock (5)")
+
+    try:
+        if (int(choice) > 0 and int(choice) < 6):
+            enemyChoice = list(picks.keys())[random.randint(0,4)]
+            checkWinner(int(choice), enemyChoice, game)
+        else:
+            print("Invalid input")
+            raise Exception()
+    except:
+        if(choice.lower() == "rock" or choice.lower() == "paper" or choice.lower() == "scissors" or choice.lower() == "lizard" or choice.lower() == "spock"):
+            checkWinner(choice, enemyChoice, game)
+        else:
+            print("Invalid input\n\n")
+            playExtended(game)
 
 
 def askAgain(game):
@@ -101,16 +125,18 @@ def askAgain(game):
             raise Exception()
             
     except:
-        #code stops when multiple wrong inputs and then right one ? 
+        #code stops when multiple wrong inputs and then right one?
+        #still a problem
         askAgain(game)
     
 def play(game):
     
     
-    game.rounds = getRoundNumber()
+    
     if not game.ongoing:
-        #extended game doesnt work yet
         game.extended = askExtended()
+        
+    game.rounds = getRoundNumber()
     
     os.system('clear')
     
@@ -118,7 +144,10 @@ def play(game):
     playedRounds = 0
 
     while playedRounds < game.rounds:
-        playRound(game)
+        if game.extended:
+            playExtended(game)
+        else:
+            playNormal(game)
         
 
         playedRounds += 1
