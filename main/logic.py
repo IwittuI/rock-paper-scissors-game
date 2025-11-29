@@ -1,5 +1,6 @@
 import random
 import os
+
 #dict of possible picks | values are the winning matchups
 picks = {
     "rock": ["scissors", "lizard"],
@@ -9,7 +10,7 @@ picks = {
     "spock": ["scissors", "rock"],
 }
 
-#game obj to keep track of scores rounds and what type
+#game obj to keep track of stats and options
 class Game:
     def __init__(self):
         self.pointsP1 =  0
@@ -17,11 +18,13 @@ class Game:
         self.rounds = 0
         self.extended = False
         self.ongoing = False
+        self.wins = 0
+        self.losses = 0
+        self.draws = 0
         
 def getRoundNumber():
-
     try:
-        rounds = int(input("How many rounds do you want to play?\n"))
+        rounds = int(input("\nHow many rounds do you want to play?\n"))
 
     except:
         print("Invalid Input for number of rounds.")
@@ -30,80 +33,79 @@ def getRoundNumber():
     return rounds
 
 def askExtended():
-
-    try:
-        extended = input("Do you want to play the extended game? (y/n)\n")
-        if extended == "y":
+    extended = input("Do you want to play the extended game? (y/n)\n")
+    
+    match extended.lower():
+        case "y" | "yes":
             return True
-        elif extended == "n":
+        case "n" | "no":
             return False
-        else:
-            raise Exception()
-    except:
-        print("Invalid Input for number of rounds.")
-        return askExtended()
+        case _:
+            os.system('clear')
+            print("Invalid Input for variant choice.")
+            return askExtended()     
 
 def checkWinner(choice, enemyChoice, game):
-    
-    #converts int input to key pick value if not string
+    #converts int input to key pick value if choice is not string
     if isinstance(choice, int):
         choice = list(picks.keys())[choice-1]
+        
+    os.system('clear')
     print("You picked " + choice)
     print("The enemy picked " + enemyChoice)
     
-    #checs for draw first
+    #checks for draw first
     if choice == enemyChoice:
+        print("Draw!\n")
         
-        print("Draw!\n\n\n")
-    elif enemyChoice in picks[choice]:
-        
-        print("Win\n\n\n")
+    elif enemyChoice in picks[choice]: 
+        print("Win\n")
         game.pointsP1 += 1
-    else:
         
-        print("Lose!\n\n\n")
+    else: 
+        print("Lose!\n")
         game.pointsP2 += 1
      
     print("Score: " + str(game.pointsP1) + " : " + str(game.pointsP2) + "\n")
 
 
 def playNormal(game):
-
     choice = input("Whats your move?\nRock (1)\nPaper (2)\nScissors (3)\n")
+    #randomly picks the com choice from the list of keys (here for normal mode only the first 3)
     enemyChoice = list(picks.keys())[random.randint(0,2)]
 
     try:
-        if (int(choice) > 0 and int(choice) < 4):
-            
-            checkWinner(int(choice), enemyChoice, game)
+        choice = int(choice)
+        if choice > 0 and choice < 4:
+            checkWinner(choice, enemyChoice, game)
             
         else:
             print("Invalid input")
             raise Exception()
         
     except:
-        if(choice.lower() in list(picks.keys())[:2]):
-            checkWinner(choice, enemyChoice, game)
+        if(choice.lower() in list(picks.keys())[:3]):
+            checkWinner(choice.lower(), enemyChoice, game)
             
         else:
             print("Invalid input\n\n")
             playNormal(game)
             
 def playExtended(game):
-
-    print("Whats your move?")
-    
+    print("Whats your move?") 
     #loop through keys to make game expandable
     for i in range(0, len(picks)):
         print(list(picks.keys())[i].capitalize() + " (" +str(i + 1) + ")")
+        
     choice = input()
-    
+    #randomly picks the com choice from the list of keys
     enemyChoice = list(picks.keys())[random.randint(0,4)]
 
     try:
-        if (int(choice) > 0 and int(choice) < 6):
+        choice = int(choice)
+        if choice > 0 and choice < 6:
             
-            checkWinner(int(choice), enemyChoice, game)
+            checkWinner(choice, enemyChoice, game)
         else:
             print("Invalid input")
             raise Exception()
@@ -116,52 +118,118 @@ def playExtended(game):
 
 
 def askAgain(game):
-    try:
-        value = int(input("Play again? (1)\nOr continue this match you sore loser (2)\nOr end? (3)\n"))
+    value = input("Play again? (1)\nOr continue this match you sore loser (2)\nOr go back to menu? (3)\n").lower()
 
-        if value == 1 or value == 2:
-            #resets score for new game
-            if value == 1:
-                game.pointsP1 = 0
-                game.pointsP2 = 0
-                game.ongoing = False
-            #only sets ongoing True so you dont get asked for extended again   
-            else:
-                game.ongoing = True
-                
+    match value:
+        #resets score for new game
+        case "1" | "again":
+            game.pointsP1 = 0
+            game.pointsP2 = 0
+            game.ongoing = False
             return True
         
-        elif value == 3:
+        #only sets ongoing True so you dont get asked for extended again etc  
+        case "2" | "continue":
+            game.ongoing = True
+            return True
+        
+        case "3" | "menu" | "end" | "exit":
+            game.pointsP1 = 0
+            game.pointsP2 = 0
+            game.ongoing = False
+            os.system('clear')
             return False
-        else:
-            raise Exception()
+        
+        case _:
+            os.system('clear')
+            print("Invalid input.")
+            return askAgain(game)
+        
+def checkContinue(game):
+    continueCheck = ""
+    
+    if not game.ongoing:
+        if game.pointsP1 > game.rounds / 2 and game.rounds % 2 != 0 or game.pointsP1 >= game.rounds / 2 and game.rounds % 2 != 0:
+            continueCheck = input("You technically already won do you want to continue? (y/n)\n")
             
-    except:
-        return askAgain(game)
+        elif game.pointsP2 > game.rounds / 2 and game.rounds % 2 != 0 or game.pointsP2 >= game.rounds / 2 and game.rounds % 2 != 0:
+            continueCheck = input("You technically already lost do you want to continue? (y/n)\n")
+        
+    if continueCheck != "":    
+        match continueCheck.lower():
+            case "":
+                return True
+            case "y" | "yes":
+                game.ongoing = True
+                return True
+            case "n" | "no":
+                return False
+            case _:
+                print("Invalid input.")
+                return checkContinue(game)
     
+    return True
+
+def printWinner(game):
+    match (game.pointsP1 > game.pointsP2):
+        case True:
+            print("You won!\n")
+            game.wins += 1
+            
+        case False:
+            if game.pointsP1 == game.pointsP2:
+                print("Draw!\n")
+                game.draws += 1
+            else:
+                print("You lost.\n")
+                game.losses += 1      
+               
+        case _:
+            print("Something went wrong")
+        
 def play(game):
-    
-    #asked for variant if game is new
+    os.system('clear')
+    #pre game
+    #ask for variant if game is new
     if not game.ongoing:
         game.extended = askExtended()
-        
+    
     game.rounds = getRoundNumber()
     os.system('clear')
     
     #general game loop
     playedRounds = 0
     while playedRounds < game.rounds:
-        if game.extended:
-            playExtended(game)
-            
-        else:
-            playNormal(game)
+        if checkContinue(game):
+            if game.extended:
+                playExtended(game)
+                
+            else:
+                playNormal(game)
         
         playedRounds += 1
-        
+    
+    #post game
+    printWinner(game)
     if askAgain(game):
         play(game)
-    
+        
+def checkStats(game):
+    os.system('clear')
+    print("You won a total of " + str(game.wins) + " times!")
+    print("You lost a total of " + str(game.losses) + " times.\n")
+        
 if __name__ == "__main__":
     game = Game()
-    play(game)
+    loop = True
+    while loop:
+        
+        choice = input("What do you want to do?\nPlay (1)\nCheck Stats (2)\nEnd (3)\n").lower()
+        match choice:
+            case "1" | "play":
+                play(game)
+            case "2" | "stats" | "check stats" | "checkstats":
+                checkStats(game)
+            case "3" | "end":
+                print("bye!")
+                loop = False
