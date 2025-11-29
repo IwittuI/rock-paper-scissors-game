@@ -216,8 +216,15 @@ def play(game):
         
 def checkStats(game):
     os.system('clear')
+    matches = game.wins + game.losses + game.draws
+    print("You played a total of " + str(matches) + " matches!")
     print("You won a total of " + str(game.wins) + " times!")
     print("You lost a total of " + str(game.losses) + " times.\n")
+    #do not display winrate if 0 wins
+    try:
+        print("That's a winrate of " + str(matches / game.wins) + "%!")
+    except:
+        pass
         
 if __name__ == "__main__":
     game = Game()
@@ -231,5 +238,5 @@ if __name__ == "__main__":
             case "2" | "stats" | "check stats" | "checkstats":
                 checkStats(game)
             case "3" | "end":
-                print("bye!")
+                print("Bye!")
                 loop = False
